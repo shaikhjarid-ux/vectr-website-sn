@@ -35,7 +35,7 @@ class BudgetError extends Error {}
 
 /**
  * @typedef {import('../schema/report.js').ChainEntry} ChainEntry
- * @typedef {{ok: true, finalUrl: string, chain: ChainEntry[], status: number, contentType: string, bytesRead: number, truncated: boolean, headers: Record<string, string>, body: Uint8Array, subrequests: number}
+ * @typedef {{ok: true, finalUrl: string, chain: ChainEntry[], status: number, contentType: string, bytesRead: number, truncated: boolean, headers: Record<string, string>, body: Uint8Array, subrequests: number, hadSetCookie: boolean}
  *   | {ok: false, error: string, detail: string, chain: ChainEntry[]}} FetchOutcome
  */
 
@@ -129,6 +129,8 @@ export async function fetchTarget(url, opts) {
 
       /** @type {Record<string, string>} */
       const headers = {};
+      // Set-Cookie is never returned; remember it only so the caller refuses to cache the response.
+      const hadSetCookie = res.headers.has('set-cookie');
       for (const [k, v] of res.headers) {
         const name = k.toLowerCase();
         if (HEADER_ALLOWLIST.includes(name)) headers[name] = v;
@@ -163,7 +165,7 @@ export async function fetchTarget(url, opts) {
 
       return {
         ok: true, finalUrl: norm.url, chain, status: res.status, contentType,
-        bytesRead: body.length, truncated, headers, body, subrequests,
+        bytesRead: body.length, truncated, headers, body, subrequests, hadSetCookie,
       };
     }
   } catch (err) {

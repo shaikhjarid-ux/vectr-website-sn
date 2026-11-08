@@ -1,10 +1,25 @@
 import { defineConfig } from 'vitest/config';
+import { cloudflareTest } from '@cloudflare/vitest-plugin';
 
-// Task 7 adds a second project that runs tests/worker/index.test.js inside the
-// Workers runtime; all other tests run in plain Node.
+// Two projects: plain Node for everything, and the Workers runtime (workerd via
+// Miniflare) for the Worker entry test, which needs Cache API and SELF.fetch.
 export default defineConfig({
   test: {
-    include: ['tests/**/*.test.js'],
-    exclude: ['tests/e2e/**', 'node_modules/**'],
+    projects: [
+      {
+        test: {
+          name: 'node',
+          include: ['tests/**/*.test.js'],
+          exclude: ['tests/e2e/**', 'tests/worker/index.test.js', 'node_modules/**'],
+        },
+      },
+      {
+        plugins: [cloudflareTest({ wrangler: { configPath: './wrangler.jsonc' } })],
+        test: {
+          name: 'workers',
+          include: ['tests/worker/index.test.js'],
+        },
+      },
+    ],
   },
 });

@@ -138,6 +138,7 @@ describe('body handling', () => {
     expect(JSON.stringify(r.headers)).not.toContain('SECRET');
     expect(r.headers).toMatchObject({ server: 'nginx', 'content-disposition': 'attachment; filename="a.exe"' });
     expect(Object.keys(r.headers).every((k) => HEADER_ALLOWLIST.includes(k))).toBe(true);
+    expect(r.hadSetCookie).toBe(true);
   });
   it('returns an empty body for a binary page and preserves the content type', async () => {
     const f = router({ 'https://x.com/a.zip': new Response('PKzip', { status: 200, headers: { 'content-type': 'application/zip' } }) });
