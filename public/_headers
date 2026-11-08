@@ -1,0 +1,3 @@
+# Placeholder so the build runs; Task 24 replaces this with the full security headers.
+/*
+  X-Content-Type-Options: nosniff
