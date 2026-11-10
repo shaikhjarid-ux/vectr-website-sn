@@ -1,0 +1,169 @@
+[
+  {
+    "file": "payload-links.html",
+    "expected": [
+      {
+        "ruleId": "payload.link.executable",
+        "tag": "a",
+        "attribute": "href"
+      },
+      {
+        "ruleId": "payload.link.archive",
+        "tag": "a",
+        "attribute": "href"
+      },
+      {
+        "ruleId": "payload.link.query-filename",
+        "tag": "a",
+        "attribute": "href"
+      }
+    ]
+  },
+  {
+    "file": "filenames.html",
+    "expected": [
+      {
+        "ruleId": "filename.double-extension"
+      },
+      {
+        "ruleId": "filename.control-chars"
+      },
+      {
+        "ruleId": "filename.archive-executable"
+      },
+      {
+        "ruleId": "filename.homoglyph"
+      }
+    ]
+  },
+  {
+    "file": "obfuscation.html",
+    "expected": [
+      {
+        "ruleId": "obfuscation.decoded-payload-url"
+      },
+      {
+        "ruleId": "obfuscation.decoded-url"
+      }
+    ]
+  },
+  {
+    "file": "redirects.html",
+    "expected": [
+      {
+        "ruleId": "redirect.meta-refresh",
+        "tag": "meta",
+        "attribute": "content"
+      },
+      {
+        "ruleId": "redirect.script-navigation"
+      }
+    ]
+  },
+  {
+    "file": "redirect-chain.html",
+    "expected": [
+      {
+        "ruleId": "redirect.chain-cross-domain"
+      }
+    ],
+    "finalUrl": "https://d.io/",
+    "chain": [
+      {
+        "url": "https://a.com/",
+        "status": 302,
+        "location": "https://b.net/"
+      },
+      {
+        "url": "https://b.net/",
+        "status": 302,
+        "location": "https://c.org/"
+      },
+      {
+        "url": "https://c.org/",
+        "status": 302,
+        "location": "https://d.io/"
+      },
+      {
+        "url": "https://d.io/",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "file": "final-host.html",
+    "expected": [
+      {
+        "ruleId": "redirect.final-host-differs"
+      }
+    ],
+    "finalUrl": "https://app.x.com/",
+    "chain": [
+      {
+        "url": "https://x.com/",
+        "status": 301,
+        "location": "https://app.x.com/"
+      },
+      {
+        "url": "https://app.x.com/",
+        "status": 200
+      }
+    ]
+  },
+  {
+    "file": "overlays.html",
+    "expected": [
+      {
+        "ruleId": "overlay.hidden-iframe",
+        "tag": "iframe",
+        "attribute": "src"
+      },
+      {
+        "ruleId": "overlay.fullscreen-capture"
+      },
+      {
+        "ruleId": "overlay.offscreen-link"
+      }
+    ]
+  },
+  {
+    "file": "forms-schemes.html",
+    "expected": [
+      {
+        "ruleId": "form.off-origin-action",
+        "tag": "form",
+        "attribute": "action"
+      },
+      {
+        "ruleId": "form.password-off-origin"
+      },
+      {
+        "ruleId": "uri.data-download"
+      },
+      {
+        "ruleId": "uri.blob-reference"
+      },
+      {
+        "ruleId": "uri.javascript-href"
+      },
+      {
+        "ruleId": "uri.ms-handler"
+      }
+    ]
+  },
+  {
+    "file": "headers.html",
+    "expected": [
+      {
+        "ruleId": "header.content-disposition-attachment"
+      },
+      {
+        "ruleId": "header.executable-content-type"
+      }
+    ],
+    "headers": {
+      "content-disposition": "attachment; filename=\"setup.exe\"",
+      "content-type": "application/x-msdownload"
+    }
+  }
+]

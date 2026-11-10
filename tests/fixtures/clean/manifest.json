@@ -1,0 +1,52 @@
+[
+  {
+    "file": "docs-site.html",
+    "description": "Documentation site with sidebar, code samples and a search form (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "news-article.html",
+    "description": "News article with related links, social share links and an embedded video iframe (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "ad-heavy.html",
+    "description": "Ad-heavy page with trackers and many third-party links but no payloads (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "vendor-download.html",
+    "description": "Official vendor download page with a legitimate installer link on the same domain (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "forum.html",
+    "description": "Forum thread with many links, avatars and a reply form posting to the same site (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "store.html",
+    "description": "Online store product page with same-site cart form, login form and inline data: image (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "blog.html",
+    "description": "Personal blog post with images, code and a few outbound links (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "spa-shell.html",
+    "description": "Single-page-application shell with an empty root element and one bundle (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "filehost-landing.html",
+    "description": "File-host landing page with a download button, archive link and off-origin ads (synthetic)",
+    "synthetic": true
+  },
+  {
+    "file": "wiki.html",
+    "description": "Wiki article with many internal links, references and a table of contents (synthetic)",
+    "synthetic": true
+  }
+]
