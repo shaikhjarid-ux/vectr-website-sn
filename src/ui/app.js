@@ -1,2 +1,5 @@
-// Stub: replaced in Task 23 (UI shell and safe rendering).
-export {};
+// Browser entry: wires the real scan engine into the page.
+import { scan } from '../engine/scan.js';
+import { startApp } from './start.js';
+
+startApp(document, { scan });

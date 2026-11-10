@@ -6,8 +6,25 @@
     <title>FMHY Safety Auditor</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
-    <main id="app"><h1>FMHY Safety Auditor</h1><p>Scaffold stub. The interface arrives in Task 23.</p></main>
+  <body class="bg-slate-50 text-slate-900">
+    <main class="mx-auto max-w-3xl space-y-4 p-4">
+      <header>
+        <h1 class="text-2xl font-bold">FMHY Safety Auditor</h1>
+        <p class="mt-1">Static analysis of a web page and the links it contains. Nothing from the scanned site is run or opened in your browser.</p>
+      </header>
+      <form id="scan-form" class="space-y-2" novalidate>
+        <label for="url-input" class="block font-semibold">Web address to scan</label>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <input id="url-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" aria-describedby="url-help error" class="min-w-0 flex-1 rounded border border-slate-700 bg-white p-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800" />
+          <button id="scan-button" type="submit" class="rounded border border-blue-900 bg-blue-900 px-4 py-2 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-800 disabled:opacity-60">Scan</button>
+        </div>
+        <p id="url-help" class="text-sm text-slate-700">Only http and https addresses can be scanned. The address is sent to this site's fetch service.</p>
+        <p id="error" role="alert" class="text-red-900"></p>
+      </form>
+      <div id="progress" aria-live="polite" class="text-slate-800"></div>
+      <div id="actions" class="flex flex-wrap gap-2"></div>
+      <div id="results" tabindex="-1" class="space-y-4 outline-none"></div>
+    </main>
     <script type="module" src="/app.js"></script>
   </body>
 </html>
