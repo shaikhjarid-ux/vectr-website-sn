@@ -15,6 +15,17 @@ export function makeLocator(html) {
   };
 }
 
+/** Replace control and bidirectional-override characters with visible \uXXXX escapes so evidence cannot spoof its own display. */
+export function escapeControlChars(s) {
+  let out = '';
+  for (const ch of String(s)) {
+    const c = ch.codePointAt(0);
+    const control = c <= 0x1f || (c >= 0x7f && c <= 0x9f) || (c >= 0x202a && c <= 0x202e) || (c >= 0x2066 && c <= 0x2069);
+    out += control ? `\\u${c.toString(16).padStart(4, '0')}` : ch;
+  }
+  return out;
+}
+
 /**
  * Build Evidence for a UrlRef.
  * @param {import('./index.js').DetectorContext} ctx
@@ -30,12 +41,12 @@ export function evidenceFromRef(ctx, ref, locate) {
   if (ref.line !== null) location.line = ref.line;
   if (ref.column !== null) location.column = ref.column;
   return {
-    snippet,
+    snippet: escapeControlChars(snippet),
     sourceUrl: ctx.finalUrl,
     location,
-    matchedValue: ref.raw,
-    normalizedValue: ref.resolved ?? ref.raw,
-    context: ref.text ?? '',
+    matchedValue: escapeControlChars(ref.raw),
+    normalizedValue: escapeControlChars(ref.resolved ?? ref.raw),
+    context: escapeControlChars(ref.text ?? ''),
   };
 }
 

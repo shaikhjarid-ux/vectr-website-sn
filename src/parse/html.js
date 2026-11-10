@@ -30,6 +30,11 @@ function* walk(root) {
 
 const isElement = (n) => typeof n.tagName === 'string';
 
+/** Every element node in document order (including <template> content). */
+export function* walkElements(tree) {
+  for (const n of walk(tree)) if (isElement(n)) yield n;
+}
+
 /** First `<base href>` wins; an unusable one is ignored. */
 export function effectiveBase(tree, finalUrl) {
   for (const n of walk(tree)) {
