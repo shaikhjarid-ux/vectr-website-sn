@@ -12,7 +12,8 @@
     "test": "vitest run",
     "lint": "eslint .",
     "build": "node scripts/build.mjs",
-    "dev": "npm run build && wrangler dev"
+    "dev": "npm run build && wrangler dev",
+    "test:e2e": "npm run build && playwright test"
   },
   "dependencies": {
     "acorn": "^8.19.0",
