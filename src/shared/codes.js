@@ -6,6 +6,8 @@ export const ERROR_CODES = [
 ];
 
 export const REASON_CODES = [
+  // Fetch failures reuse the error codes as coverage reasons.
+  ...ERROR_CODES,
   'response_truncated', 'fetch_timeout', 'script_parse_limit_reached',
   'resource_budget_exhausted', 'scan_deadline_reached', 'external_stylesheet_skipped',
   'unsupported_runtime_behavior',
