@@ -13,7 +13,8 @@
     "lint": "eslint .",
     "build": "node scripts/build.mjs",
     "dev": "npm run build && wrangler dev",
-    "test:e2e": "npm run build && playwright test"
+    "test:e2e": "npm run build && playwright test",
+    "staging": "node scripts/staging/run.mjs"
   },
   "dependencies": {
     "acorn": "^8.19.0",

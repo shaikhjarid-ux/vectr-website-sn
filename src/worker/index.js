@@ -5,7 +5,7 @@
 import { fetchTarget } from './fetcher.js';
 import { normalizeTarget } from './guard.js';
 import { encodeMeta, decodeMeta, securityHeaders } from './headers.js';
-import { REQUEST_LIMITS } from './limits.js';
+import { REQUEST_LIMITS, createCacheLimiter } from './limits.js';
 
 const STATUS = {
   bad_request: 400, bad_url: 400, blocked_target: 403, rate_limited: 429,
@@ -92,7 +92,11 @@ export function createHandler(deps = {}) {
 
     try {
       const key = request.headers.get('cf-connecting-ip') ?? 'unknown';
-      const verdict = await env.FETCH_LIMITER.limit({ key });
+      // Prefer the Rate Limiting binding; without it fall back to the weaker per-data-centre Cache API limiter.
+      const cacheForLimit = getCache();
+      const limiter = env.FETCH_LIMITER ?? (cacheForLimit ? createCacheLimiter(cacheForLimit) : null);
+      if (!limiter) throw new Error('no rate limiter available');
+      const verdict = await limiter.limit({ key });
       if (!verdict.success) {
         log(env, { outcome: 'rate_limited' });
         return errorResponse('rate_limited', 'too many requests', { headers: { 'retry-after': String(REQUEST_LIMITS.retryAfterSeconds) } });

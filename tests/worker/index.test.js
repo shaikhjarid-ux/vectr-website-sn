@@ -114,12 +114,16 @@ describe('handler behaviour with an injected upstream fetch', () => {
     await run(h, post({ url: 'https://key.example.org/', kind: 'page' }, { ip: '198.51.100.77' }), e);
     expect(e.FETCH_LIMITER.limit).toHaveBeenCalledWith({ key: '198.51.100.77' });
   });
-  it('fails closed with 503 when the limiter is missing or throws', async () => {
+  it('fails closed with 503 when the limiter throws', async () => {
     const h = createHandler({ fetchFn: upstream({}) });
-    const r1 = await run(h, post({ url: 'https://x.com/', kind: 'page' }), { ENVIRONMENT: 'test' });
-    expect(r1.status).toBe(503);
-    const r2 = await run(h, post({ url: 'https://x.com/', kind: 'page' }), { FETCH_LIMITER: { limit: async () => { throw new Error('x'); } } });
-    expect(r2.status).toBe(503);
+    const r = await run(h, post({ url: 'https://x.com/', kind: 'page' }), { FETCH_LIMITER: { limit: async () => { throw new Error('x'); } } });
+    expect(r.status).toBe(503);
+  });
+  it('falls back to the Cache API limiter when the binding is missing', async () => {
+    const f = upstream({ 'https://fallback.example.org/': page('ok') });
+    const h = createHandler({ fetchFn: f });
+    const r = await run(h, post({ url: 'https://fallback.example.org/', kind: 'page' }, { ip: '198.51.100.201' }), { ENVIRONMENT: 'test' });
+    expect(r.status).toBe(200);
   });
   it('returns upstream bytes with x-audit-meta', async () => {
     const f = upstream({ 'https://ok.example.org/p': page('<html>hello</html>', { server: 'nginx' }) });
