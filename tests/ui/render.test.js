@@ -36,7 +36,7 @@ function hostileReport() {
 let root;
 beforeEach(() => {
   document.documentElement.lang = 'en';
-  document.title = 'FMHY Safety Auditor';
+  document.title = 'Vectr Website SN';
   document.body.innerHTML = '<main><h1>Test</h1><div id="root"></div></main>';
   root = document.getElementById('root');
 });
@@ -218,7 +218,7 @@ describe('startApp', () => {
   it('the page itself has a labelled input, a live region and no accessibility violations', async () => {
     page();
     document.documentElement.lang = 'en';
-    document.title = 'FMHY Safety Auditor';
+    document.title = 'Vectr Website SN';
     expect(document.querySelector('label[for="url-input"]')).not.toBeNull();
     expect(document.getElementById('progress').getAttribute('aria-live')).toBe('polite');
     const results = await axe.run(document, { rules: { 'color-contrast': { enabled: false } } });

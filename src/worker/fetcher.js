@@ -20,7 +20,7 @@ export const HEADER_ALLOWLIST = [
 ];
 
 const OUTBOUND_HEADERS = Object.freeze({
-  'user-agent': 'FMHY-Safety-Auditor/0.1 (static analysis only; abuse reports: see SECURITY.md in the project repository)',
+  'user-agent': 'Vectr-Website-SN/0.1 (static analysis only; abuse reports: see SECURITY.md in the project repository)',
   accept: 'text/html,application/xhtml+xml,application/javascript;q=0.9,*/*;q=0.8',
   'accept-language': 'en',
 });

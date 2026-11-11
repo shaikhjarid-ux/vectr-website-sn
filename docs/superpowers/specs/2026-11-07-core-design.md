@@ -1,4 +1,4 @@
-# FMHY Safety Auditor: Core (Sub-project 1) Design, v2
+# Vectr Website SN: Core (Sub-project 1) Design, v2
 
 Date: 2026-11-07
 Status: revised after an external design review; awaiting user review

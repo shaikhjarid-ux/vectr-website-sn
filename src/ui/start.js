@@ -48,7 +48,7 @@ export function startApp(doc, deps) {
       const href = win.URL.createObjectURL(blob);
       const a = doc.createElement('a');
       a.href = href;
-      a.download = 'fmhy-safety-report.json';
+      a.download = 'vectr-website-sn-report.json';
       doc.body.append(a);
       a.click();
       a.remove();
