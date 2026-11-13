@@ -19,7 +19,7 @@
   "dependencies": {
     "acorn": "^8.19.0",
     "parse5": "^8.1.1",
-    "tldts": "^7.4.19"
+    "tldts": "^7.4.21"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.6.0",
