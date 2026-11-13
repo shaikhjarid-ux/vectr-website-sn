@@ -4,9 +4,11 @@ Core is a static website safety and hosted-payload scanner: a guarded Cloudflare
 
 ## Demonstrated coverage
 
-These are what the automated tests in this repository actually demonstrate (run with `npm test`; the counts are from the last run before this release note was written):
+These are what the automated tests in this repository actually demonstrate (run with `npm test`; the counts are from the latest run):
 
-- Unit and integration tests: 483 passing across the SSRF guard (IANA-derived range tables cross-checked against ipaddr.js on 5,000 random addresses, property tests on URL normalization), DNS answer validation through a DoH resolver, the manual-redirect fetcher (private and metadata targets, loops, hop limit, downgrade refusal, byte cap on bytes actually read, header allowlist, deadlines), the Worker entry (Origin check, size and schema limits, rate limiting, caching rules, Set-Cookie never returned or cached), the HTML and CSS parsers, the bounded static JavaScript analyzer, all eight detectors, the scan engine and the UI renderer.
+- Unit and integration tests: **510 passing** across the SSRF guard (IANA-derived range tables cross-checked against ipaddr.js on 5,000 random addresses, property tests on URL normalization), DNS answer validation through a DoH resolver, the manual-redirect fetcher (private and metadata targets, loops, hop limit, downgrade refusal, byte cap on bytes actually read, header allowlist, deadlines), the Worker entry (Origin check, size and schema limits, rate limiting, caching rules, Set-Cookie never returned or cached), the HTML and CSS parsers, the bounded static JavaScript analyzer, all eight detectors, the scan engine and the UI renderer.
+- The IANA tables in data/ are the official downloads, captured 2026-11-12. The generated address ranges matched the earlier hand-typed ranges exactly, and the special-use domain list gained 4 names.
+- Browser end-to-end tests (Chromium through Playwright, a local wrangler dev server, a mocked fetch service): 3 pass. The real Web Worker loads with no CSP or Trusted Types violations, hostile markup in file names renders as inert text, and the static page is served with the CSP. These do not test the deployed site.
 - Safe rendering: the UI tests render hostile markup, javascript: strings, bidirectional overrides and lone surrogates and assert that no active element or attribute is created and that payload URLs are defanged. Accessibility is checked with axe-core in jsdom (color contrast is not checked there).
 - Quality gates: 10 clean pages produce no high findings; every one of the 24 detector rules is recalled by at least one fixture (including location where specified); a property test shows that no single-signal page produces a high finding. **All fixtures are synthetic**, so the clean gate demonstrates behaviour on realistic synthetic pages, not on real sites.
 - Headers: `public/_headers` is tested for the exact Content-Security-Policy and the other security headers, and was observed being served by a local `wrangler dev` instance.
@@ -16,8 +18,6 @@ These are what the automated tests in this repository actually demonstrate (run 
 
 The following were **not** verified and no result should be assumed:
 
-- The IANA special-purpose address and special-use domain tables in `data/` were transcribed by hand because the build environment could not reach iana.org. They must be replaced with the real downloads (commands are in `data/README.md`) before relying on them.
-- The browser end-to-end test (`npm run test:e2e`) is written but has not been run: the Playwright browser could not be downloaded in the build environment. Behaviour under the production CSP, real Web Worker loading and rendering in a real browser are therefore unconfirmed.
 - Nothing was run against a deployed staging Worker (`docs/staging-report.md` lists every staging check as not verified): fetches to real hosts, DNS lookups through the DoH resolver, the Rate Limiting binding on the Free plan, Cache API behaviour, subrequest counts and CPU time at the 1 MiB cap.
 - No real-world clean-site corpus was captured; real captures with dates should be added.
 
