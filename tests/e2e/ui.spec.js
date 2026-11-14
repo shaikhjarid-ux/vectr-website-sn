@@ -7,31 +7,51 @@ import { encodeMeta } from '../../src/worker/headers.js';
 
 const fixture = (dir, name) => readFileSync(new URL(`../fixtures/${dir}/${name}`, import.meta.url));
 
-function fulfillPage(route, url, bytes) {
+/**
+ * A mocked /api/fetch result. `pages` values are either a Buffer (an HTML page) or
+ * { contentType, headers, bytes } for other responses. Like the real Worker, a
+ * response whose type is not text carries an empty body plus its allowlisted headers.
+ */
+function fulfillPage(route, url, page) {
+  const spec = Buffer.isBuffer(page) ? { contentType: 'text/html; charset=utf-8', headers: {}, bytes: page } : page;
+  const bytes = spec.bytes ?? Buffer.alloc(0);
+  const headers = { 'content-type': spec.contentType, ...spec.headers };
   return route.fulfill({
     status: 200,
     headers: {
       'content-type': 'application/octet-stream',
-      'x-audit-meta': encodeMeta({ finalUrl: url, chain: [{ url, status: 200 }], status: 200, contentType: 'text/html; charset=utf-8', bytesRead: bytes.length, truncated: false, cache: 'miss', fetchedAt: new Date().toISOString(), headers: {} }),
+      'x-audit-meta': encodeMeta({ finalUrl: url, chain: [{ url, status: 200 }], status: 200, contentType: spec.contentType, bytesRead: bytes.length, truncated: false, cache: 'miss', fetchedAt: new Date().toISOString(), headers }),
     },
     body: bytes,
   });
 }
 
+/** Deterministic responses for every link on tests/fixtures/hostile/page.html (the exact URLs the engine requests). */
+function hostileDestinations() {
+  const binary = (filename) => ({ contentType: 'application/octet-stream', headers: { 'content-disposition': `attachment; filename="${filename}"` } });
+  return {
+    'https://hostile.example.net/files/%3Cimg%20src=x%20onerror=alert(1)%3E.exe': binary('<img src=x onerror=alert(1)>.exe'),
+    'https://hostile.example.net/files/photo%E2%80%AEgpj.exe': binary('photo\u202Egpj.exe'),
+    'https://hostile.example.net/files/%22%3E%3Cscript%3Ealert(1)%3C/script%3E.zip': binary('"><script>alert(1)</script>.zip'),
+    'https://evil.example.net/%3Csvg%20onload=alert(1)%3E.msi': binary('<svg onload=alert(1)>.msi'),
+  };
+}
+
 async function instrument(page, pages) {
-  const seen = { csp: [], errors: [], dialogs: [], requests: [] };
+  const seen = { csp: [], errors: [], dialogs: [], requests: [], fetched: [] };
   page.on('dialog', (d) => { seen.dialogs.push(d.message()); d.dismiss(); });
   page.on('console', (m) => { if (m.type() === 'error') seen.errors.push(m.text()); });
   page.on('pageerror', (e) => seen.errors.push(String(e)));
   page.on('request', (r) => seen.requests.push(r.url()));
   await page.addInitScript(() => {
-    document.addEventListener('securitypolicyviolation', (e) => { (window.__csp ||= []).push(`${e.violatedDirective} ${e.blockedURI}`); });
+    document.addEventListener('securitypolicyviolation', (e) => { (window.__csp ||= []).push(`${e.disposition} ${e.effectiveDirective} ${e.blockedURI} ${e.sample}`); });
   });
   await page.route('**/api/fetch', async (route) => {
     const { url } = JSON.parse(route.request().postData() ?? '{}');
-    const bytes = pages[url];
-    if (!bytes) return route.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: 'upstream_error', detail: 'not in fixtures' }) });
-    return fulfillPage(route, url, bytes);
+    seen.fetched.push(url);
+    const page = pages[url];
+    if (!page) return route.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: 'upstream_error', detail: 'not in fixtures' }) });
+    return fulfillPage(route, url, page);
   });
   return seen;
 }
@@ -67,9 +87,16 @@ test('an obfuscated inline script is found by the real Web Worker, with no CSP v
 
 test('hostile markup in filenames renders as inert text', async ({ page, baseURL }) => {
   const url = 'https://hostile.example.net/';
-  const seen = await instrument(page, { [url]: fixture('hostile', 'page.html') });
+  const destinations = hostileDestinations();
+  const seen = await instrument(page, { [url]: fixture('hostile', 'page.html'), ...destinations });
   await scanAndWait(page, url);
   await expect(page.locator('#results')).toContainText('Executable-looking link');
+  // Every hostile link was discovered, followed through the mocked fetch service, and answered (no 502s).
+  expect(seen.fetched.sort()).toEqual([url, ...Object.keys(destinations)].sort());
+  await expect(page.locator('#results')).not.toContainText('upstream_error');
+  // The hostile text is displayed, but only as text.
+  await expect(page.locator('#results')).toContainText('<img src=x onerror=alert(1)>');
+  await expect(page.locator('#results')).toContainText('<svg onload=alert(1)>');
   expect(await page.locator('#results').locator('script, img, svg, iframe, a[href], [onerror], [onload]').count()).toBe(0);
   await assertClean(page, seen, new URL(baseURL).origin);
 });

@@ -2,6 +2,7 @@
 import { normalizeUserInput } from '../engine/candidates.js';
 import { createFetchClient } from '../engine/fetchClient.js';
 import { createAnalyzer } from '../analysis/analyzer.js';
+import { createWorkerFactory } from './trusted-worker.js';
 import { renderReport, renderProgress, reportToSummaryText, exportReportJson } from './render.js';
 
 const FRIENDLY = {
@@ -72,7 +73,7 @@ export function startApp(doc, deps) {
     actionsEl.replaceChildren();
     resultsEl.replaceChildren();
     const client = deps.client ?? createFetchClient();
-    const analyzer = deps.analyzer ?? createAnalyzer({ workerFactory: () => new win.Worker('/js-worker.js') });
+    const analyzer = deps.analyzer ?? createAnalyzer({ workerFactory: createWorkerFactory(win) });
     try {
       const report = await deps.scan(url, { client, analyzer, onProgress: (s) => renderProgress(s, progressEl) });
       renderReport(report, resultsEl);
