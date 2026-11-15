@@ -14,11 +14,12 @@ const STAGING = process.env.STAGING_URL?.replace(/\/$/, '');
 const FIXTURES = process.env.FIXTURES_URL?.replace(/\/$/, '');
 const PRIVATE_DNS = process.env.STAGING_PRIVATE_DNS_HOST;
 
-async function call(url, kind = 'page', ip = '198.51.100.250') {
+async function call(url, kind = 'page') {
   const started = Date.now();
   const res = await fetch(`${STAGING}/api/fetch`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json', origin: STAGING, 'cf-connecting-ip': ip },
+    // cf-connecting-ip is set by Cloudflare itself; a client-supplied one is rejected at the edge before the Worker runs.
+    headers: { 'content-type': 'application/json', origin: STAGING },
     body: JSON.stringify({ url, kind }),
   });
   const ms = Date.now() - started;
@@ -64,14 +65,19 @@ async function main() {
     } else add('private-dns', 'not verified', 'STAGING_PRIVATE_DNS_HOST not set');
 
     const burst = [];
-    for (let i = 0; i < 40; i++) burst.push(call(f('/final'), 'page', '198.51.100.251'));
+    for (let i = 0; i < 40; i++) burst.push(call(f('/final')));
     const codes = (await Promise.all(burst)).map((x) => x.status);
     const limited = codes.filter((c) => c === 429).length;
     const unavailable = codes.filter((c) => c === 503).length;
     add('rate-limit', limited > 0 && unavailable === 0 ? 'pass' : 'not verified', `40 requests from one key: ${limited} x 429, ${unavailable} x 503${limited === 0 ? ' (no limiting observed; cannot conclude the binding works)' : ''}`);
 
+    // Every request comes from this machine, so they all share one limit (30 per 60 s per location).
+    // After the burst, wait for the window to reset; otherwise the remaining checks would be refused with 429.
+    console.log('Waiting 65 seconds for the rate limit window to reset...');
+    await new Promise((resolve) => setTimeout(resolve, 65000));
+
     const repeats = [];
-    for (let i = 0; i < 5; i++) repeats.push((await call(f('/final'), 'page', `198.51.100.${10 + i}`)).meta?.cache);
+    for (let i = 0; i < 5; i++) repeats.push((await call(f('/final'))).meta?.cache);
     add('cache-locality', 'info', `5 repeated requests: ${repeats.join(', ')}`);
     add('subrequests', 'not verified', 'the Worker logs the count; read it with wrangler tail (not observable over HTTP)');
     r = await call(f('/final'));

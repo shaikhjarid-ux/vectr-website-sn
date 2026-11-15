@@ -13,12 +13,13 @@ These are what the automated tests in this repository actually demonstrate (run 
 - Quality gates: 10 clean pages produce no high findings; every one of the 24 detector rules is recalled by at least one fixture (including location where specified); a property test shows that no single-signal page produces a high finding. **All fixtures are synthetic**, so the clean gate demonstrates behaviour on realistic synthetic pages, not on real sites.
 - Headers: `public/_headers` is tested for the exact Content-Security-Policy and the other security headers, and was observed being served by a local `wrangler dev` instance.
 - Local Worker checks (`wrangler dev` and curl): requests to loopback, cloud metadata and non-standard ports are refused with 403 blocked_target; requests without an Origin header are refused.
+- Staging checks against the deployed Cloudflare Workers (staging report dated 2026-11-14): redirects to private and cloud-metadata addresses are refused (403), a redirect loop and a six-hop chain are stopped (502), a slow-drip body times out at the 8 s deadline (504), an oversized body with a false Content-Length is capped at exactly 1,048,576 bytes, and a Set-Cookie response is not returned or cached. The Rate Limiting binding exists and limits requests on this account's plan, but loosely: in one burst of 40 parallel requests only 2 were refused, so treat it as approximate.
 
 ## Not verified
 
 The following were **not** verified and no result should be assumed:
 
-- Nothing was run against a deployed staging Worker (`docs/staging-report.md` lists every staging check as not verified): fetches to real hosts, DNS lookups through the DoH resolver, the Rate Limiting binding on the Free plan, Cache API behaviour, subrequest counts and CPU time at the 1 MiB cap.
+- Not measured on the deployed Worker: DNS rebinding resistance (rebinding is a documented residual risk), the subrequest count per scan, and CPU time at the 1 MiB cap (the oversized-body check completed without a CPU-limit error, which is not a measurement).
 - No real-world clean-site corpus was captured; real captures with dates should be added.
 
 ## Residual risks
@@ -31,4 +32,4 @@ The following were **not** verified and no result should be assumed:
 
 ## Compatibility
 
-Requires Node.js 22 or newer for development. The test package `@cloudflare/vitest-plugin` replaces the deprecated `@cloudflare/vitest-pool-workers` named in the original plan.
+Requires Node.js 22 or newer for development. The test package `@cloudflare/vitest-plugin` replaces the deprecated `@cloudflare/vitest-pool-workers` named in the original plan. The scanner Worker uses the `global_fetch_strictly_public` compatibility flag so that `fetch()` behaves as if made from the public Internet; without it, Cloudflare refuses fetches to another Worker on the same zone with error 1042.
