@@ -1,4 +1,4 @@
-# Vectr Website SN
+# [Vectr Website SN] (https://vectr-website-sn.vectr-sn.workers.dev/)
 
 An open-source, free-tier website safety and hosted payload auditor. It fetches
 a page through a guarded Cloudflare Worker proxy and analyzes it **statically**
